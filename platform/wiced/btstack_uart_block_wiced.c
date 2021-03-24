@@ -30,7 +30,7 @@
  * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * Please inquire about commercial licensing options at 
+ * Please inquire about commercial licensing options at
  * contact@bluekitchen-gmbh.com
  *
  */
@@ -58,7 +58,7 @@
 
 // priority higher than WIFI to make sure RTS is set
 #define WICED_BT_UART_THREAD_PRIORITY        (WICED_NETWORK_WORKER_PRIORITY - 2)
-#define WICED_BT_UART_THREAD_STACK_SIZE      300
+#define WICED_BT_UART_THREAD_STACK_SIZE      400
 
 // assert pre-buffer for packet type is available
 #if !defined(HCI_OUTGOING_PRE_BUFFER_SIZE) || (HCI_OUTGOING_PRE_BUFFER_SIZE == 0)
@@ -121,7 +121,7 @@ static wiced_result_t btstack_uart_block_wiced_tx_worker_send_block(void * arg){
     if (btstack_flow_control_mode == BTSTACK_FLOW_CONTROL_MANUAL && wiced_bt_uart_pins[WICED_BT_PIN_UART_CTS]){
         while (platform_gpio_input_get(wiced_bt_uart_pins[WICED_BT_PIN_UART_CTS]) == WICED_TRUE){
             wiced_rtos_delay_milliseconds(10);
-        }        
+        }
     }
 
     // blocking send
@@ -146,7 +146,7 @@ static wiced_result_t btstack_uart_block_wiced_rx_worker_receive_block(void * ar
     // newer API uses pointer to return number of read bytes
     uint32_t bytes = rx_worker_read_size;
     platform_uart_receive_bytes(wiced_bt_uart_driver, rx_worker_read_buffer, &bytes, WICED_NEVER_TIMEOUT);
-    // assumption: bytes = bytes_to_read as timeout is never    
+    // assumption: bytes = bytes_to_read as timeout is never
 #endif
 
     if (btstack_flow_control_mode == BTSTACK_FLOW_CONTROL_MANUAL && wiced_bt_uart_pins[WICED_BT_PIN_UART_CTS]){
@@ -294,7 +294,7 @@ static int btstack_uart_block_wiced_set_baudrate(uint32_t baudrate){
 #if defined(_STM32F205RGT6_) || defined(STM32F40_41xxx) || defined(STM32F411xE) || (STM32F412xG)
 
     // directly use STM peripheral functions to change baud rate dynamically
-    
+
     // set TX to high
     log_info("set baud %u", (int) baudrate);
     const platform_gpio_t* gpio = wiced_bt_uart_pins[WICED_BT_PIN_UART_TX];
@@ -349,13 +349,13 @@ static void btstack_uart_block_wiced_send_block(const uint8_t *buffer, uint16_t 
     // store in request
     tx_worker_data_buffer = buffer;
     tx_worker_data_size = length;
-    wiced_rtos_send_asynchronous_event(&tx_worker_thread, &btstack_uart_block_wiced_tx_worker_send_block, NULL);    
+    wiced_rtos_send_asynchronous_event(&tx_worker_thread, &btstack_uart_block_wiced_tx_worker_send_block, NULL);
 }
 
 static void btstack_uart_block_wiced_receive_block(uint8_t *buffer, uint16_t len){
     rx_worker_read_buffer = buffer;
     rx_worker_read_size   = len;
-    wiced_rtos_send_asynchronous_event(&rx_worker_thread, &btstack_uart_block_wiced_rx_worker_receive_block, NULL);    
+    wiced_rtos_send_asynchronous_event(&rx_worker_thread, &btstack_uart_block_wiced_rx_worker_receive_block, NULL);
 }
 
 
