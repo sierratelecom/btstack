@@ -277,7 +277,9 @@ static int btstack_uart_block_wiced_open(void){
 }
 
 static int btstack_uart_block_wiced_close(void){
-    // not implemented
+    // delete worker threads for rx/tx.
+    wiced_rtos_delete_worker_thread(&tx_worker_thread);
+    wiced_rtos_delete_worker_thread(&rx_worker_thread);
     return 0;
 }
 
