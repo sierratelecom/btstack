@@ -30,7 +30,7 @@
  * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * Please inquire about commercial licensing options at 
+ * Please inquire about commercial licensing options at
  * contact@bluekitchen-gmbh.com
  *
  */
@@ -52,12 +52,13 @@ extern "C" {
 #endif
 
 #include "btstack_config.h"
-    
+
 // Core
 #include "hci.h"
 #include "l2cap.h"
 
 // Classic
+#ifdef ENABLE_CLASSIC
 #include "classic/avdtp_sink.h"
 #include "classic/avdtp_source.h"
 #include "classic/avrcp.h"
@@ -68,6 +69,7 @@ extern "C" {
 #include "classic/hid_host.h"
 #include "classic/rfcomm.h"
 #include "classic/sdp_server.h"
+#endif
 
 // BLE
 #ifdef ENABLE_BLE
