@@ -65,7 +65,7 @@
 #define BT_LE_AD_NO_BREDR (1U << 2)
 
 #define LIM_DISC_SCAN_MIN_MS 10000
-#define GAP_CONNECT_TIMEOUT_MS 10000
+#define GAP_CONNECT_TIMEOUT_MS 30000
 
 //#define TEST_POWER_CYCLE
 
@@ -249,6 +249,7 @@ static void btstack_packet_handler (uint8_t packet_type, uint16_t channel, uint8
     UNUSED(channel);
     hci_con_handle_t con_handle;
     uint8_t i;
+    uint8_t status;
 
     switch (packet_type) {
         case HCI_EVENT_PACKET:
@@ -426,10 +427,10 @@ static void btstack_packet_handler (uint8_t packet_type, uint16_t channel, uint8
                             uint16_t conn_interval = hci_subevent_le_connection_complete_get_conn_interval(packet);
                             uint16_t conn_latency  = hci_subevent_le_connection_complete_get_conn_latency(packet);
                             uint16_t supervision_timeout = hci_subevent_le_connection_complete_get_supervision_timeout(packet);
-
+                            status = hci_subevent_le_connection_complete_get_status(packet);
                             // gap_whitelist_remove(remote_addr_type, remote_addr);
 
-                            MESSAGE("Connected LE to %s with con handle 0x%04x", bd_addr_to_str(remote_addr), remote_handle);
+                            MESSAGE("Connected LE to %s, status 0x%02x with con handle 0x%04x", bd_addr_to_str(remote_addr), status, remote_handle);
 
                             uint8_t buffer[13];
                             buffer[0] =  remote_addr_type;
@@ -1956,6 +1957,8 @@ int btstack_main(int argc, const char * argv[])
     gap_set_local_name(gap_name);
     gap_set_class_of_device(gap_cod);
 #endif
+    // use 30-100 ms connection interval to allow for 2 ACL Connections with CIS
+    gap_set_connection_parameters(0x60, 0x30, 0x18, 0x50, 4, 200, 0x18, 0x50);
 
     // delete all bonding information on start
     gap_delete_bonding_on_start = true;
