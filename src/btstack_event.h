@@ -14933,7 +14933,7 @@ static inline uint8_t gattservice_subevent_pacs_server_audio_locations_get_role(
 }
 
 /**
- * @brief Get field con_handle from event GATTSERVICE_SUBEVENT_BASS_CONNECTED
+ * @brief Get field con_handle from event GATTSERVICE_SUBEVENT_BASS_CLIENT_CONNECTED
  * @param event packet
  * @return con_handle
  * @note: btstack_type H
@@ -14942,7 +14942,7 @@ static inline hci_con_handle_t gattservice_subevent_bass_connected_get_con_handl
     return little_endian_read_16(event, 3);
 }
 /**
- * @brief Get field bass_cid from event GATTSERVICE_SUBEVENT_BASS_CONNECTED
+ * @brief Get field bass_cid from event GATTSERVICE_SUBEVENT_BASS_CLIENT_CONNECTED
  * @param event packet
  * @return bass_cid
  * @note: btstack_type 2
@@ -14951,7 +14951,7 @@ static inline uint16_t gattservice_subevent_bass_connected_get_bass_cid(const ui
     return little_endian_read_16(event, 5);
 }
 /**
- * @brief Get field status from event GATTSERVICE_SUBEVENT_BASS_CONNECTED
+ * @brief Get field status from event GATTSERVICE_SUBEVENT_BASS_CLIENT_CONNECTED
  * @param event packet
  * @return status
  * @note: btstack_type 1
@@ -14961,7 +14961,7 @@ static inline uint8_t gattservice_subevent_bass_connected_get_status(const uint8
 }
 
 /**
- * @brief Get field bass_cid from event GATTSERVICE_SUBEVENT_BASS_DISCONNECTED
+ * @brief Get field bass_cid from event GATTSERVICE_SUBEVENT_BASS_CLIENT_DISCONNECTED
  * @param event packet
  * @return bass_cid
  * @note: btstack_type 2
@@ -15290,7 +15290,7 @@ static inline uint8_t gattservice_subevent_bass_notification_complete_get_source
 }
 
 /**
- * @brief Get field bass_cid from event GATTSERVICE_SUBEVENT_BASS_SOURCE_OPERATION_COMPLETE
+ * @brief Get field bass_cid from event GATTSERVICE_SUBEVENT_BASS_CLIENT_SOURCE_OPERATION_COMPLETE
  * @param event packet
  * @return bass_cid
  * @note: btstack_type 2
@@ -15299,7 +15299,7 @@ static inline uint16_t gattservice_subevent_bass_source_operation_complete_get_b
     return little_endian_read_16(event, 3);
 }
 /**
- * @brief Get field status from event GATTSERVICE_SUBEVENT_BASS_SOURCE_OPERATION_COMPLETE
+ * @brief Get field status from event GATTSERVICE_SUBEVENT_BASS_CLIENT_SOURCE_OPERATION_COMPLETE
  * @param event packet
  * @return status
  * @note: btstack_type 1
@@ -15308,7 +15308,7 @@ static inline uint8_t gattservice_subevent_bass_source_operation_complete_get_st
     return event[5];
 }
 /**
- * @brief Get field opcode from event GATTSERVICE_SUBEVENT_BASS_SOURCE_OPERATION_COMPLETE
+ * @brief Get field opcode from event GATTSERVICE_SUBEVENT_BASS_CLIENT_SOURCE_OPERATION_COMPLETE
  * @param event packet
  * @return opcode
  * @note: btstack_type 1
@@ -15317,7 +15317,7 @@ static inline uint8_t gattservice_subevent_bass_source_operation_complete_get_op
     return event[6];
 }
 /**
- * @brief Get field source_id from event GATTSERVICE_SUBEVENT_BASS_SOURCE_OPERATION_COMPLETE
+ * @brief Get field source_id from event GATTSERVICE_SUBEVENT_BASS_CLIENT_SOURCE_OPERATION_COMPLETE
  * @param event packet
  * @return source_id
  * @note: btstack_type 1
