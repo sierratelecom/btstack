@@ -60,6 +60,10 @@ extern "C" {
  * The service supports sending Notifications if the client enables them.
  */
 
+#ifndef BATTERY_SERVICE_SERVER_MAX_NUM_BATTERIES
+#define BATTERY_SERVICE_SERVER_MAX_NUM_BATTERIES 1
+#endif
+
 /* API_START */
 
 typedef enum {
@@ -91,6 +95,9 @@ typedef struct {
 typedef struct {
     hci_con_handle_t con_handle;
     uint16_t client_configurations[BS_CHARACTERISTIC_INDEX_NUM];
+
+    btstack_context_callback_registration_t  scheduled_tasks_callback;
+    uint16_t scheduled_tasks[BATTERY_SERVICE_SERVER_MAX_NUM_BATTERIES];
 } battery_service_server_connection_t;
 
 /**

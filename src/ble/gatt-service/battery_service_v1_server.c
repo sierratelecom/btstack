@@ -120,11 +120,99 @@ static battery_service_server_connection_t * bs_server_find_or_add_connection_fo
     return NULL;
 }
 
+
+static void battery_service_server_can_send_now(void * context){
+    battery_service_server_connection_t * connection = (battery_service_server_connection_t *) context;
+    btstack_assert(connection != NULL);
+
+    uint16_t i;
+    for (i = 0; i < BATTERY_SERVICE_SERVER_MAX_NUM_BATTERIES; i++){
+        if (connection->scheduled_tasks[i] == 0){
+            continue;
+        }
+
+        if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_BATTERY_LEVEL)) != 0){
+            connection->scheduled_tasks[i] &= ~(1 << BS_CHARACTERISTIC_INDEX_BATTERY_LEVEL);
+            // TODO notify/indicate
+        }
+        else if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_BATTERY_LEVEL_STATUS)) != 0){
+            connection->scheduled_tasks[i] &= ~BS_CHARACTERISTIC_INDEX_BATTERY_LEVEL_STATUS;
+            // TODO indicate/notify
+        }
+        else if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_ESTIMATED_SERVICE_DATE)) != 0){
+            connection->scheduled_tasks[i] &= ~BS_CHARACTERISTIC_INDEX_ESTIMATED_SERVICE_DATE;
+            // TODO indicate/notify
+        }
+        else if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_BATTERY_CRITCAL_STATUS)) != 0){
+            connection->scheduled_tasks[i] &= ~BS_CHARACTERISTIC_INDEX_BATTERY_CRITCAL_STATUS;
+            // TODO indicate/notify
+        }
+        else if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_BATTERY_ENERGY_STATUS)) != 0){
+            connection->scheduled_tasks[i] &= ~BS_CHARACTERISTIC_INDEX_BATTERY_ENERGY_STATUS;
+            // TODO indicate/notify
+        }
+        else if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_BATTERY_TIME_STATUS)) != 0){
+            connection->scheduled_tasks[i] &= ~BS_CHARACTERISTIC_INDEX_BATTERY_TIME_STATUS;
+            // TODO indicate/notify
+        }
+        else if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_BATTERY_HEALTH_STATUS)) != 0){
+            connection->scheduled_tasks[i] &= ~BS_CHARACTERISTIC_INDEX_BATTERY_HEALTH_STATUS;
+            // TODO indicate/notify
+        }
+        else if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_BATTERY_HEALTH_INFORMATION)) != 0){
+            connection->scheduled_tasks[i] &= ~BS_CHARACTERISTIC_INDEX_BATTERY_HEALTH_INFORMATION;
+            // TODO indicate/notify
+        }
+        else if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_BATTERY_INFORMATION)) != 0){
+            connection->scheduled_tasks[i] &= ~BS_CHARACTERISTIC_INDEX_BATTERY_INFORMATION;
+            // TODO indicate/notify
+        }
+        else if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_MANUFACTURER_NAME_STRING)) != 0){
+            connection->scheduled_tasks[i] &= ~BS_CHARACTERISTIC_INDEX_MANUFACTURER_NAME_STRING;
+            // TODO indicate/notify
+        }
+        else if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_MODEL_NUMBER_STRING)) != 0){
+            connection->scheduled_tasks[i] &= ~BS_CHARACTERISTIC_INDEX_MODEL_NUMBER_STRING;
+            // TODO indicate/notify
+        }
+        else if ((connection->scheduled_tasks[i] & (1 << BS_CHARACTERISTIC_INDEX_SERIAL_NUMBER_STRING)) != 0){
+            connection->scheduled_tasks[i] &= ~BS_CHARACTERISTIC_INDEX_SERIAL_NUMBER_STRING;
+            // TODO indicate/notify
+        }
+
+        if (connection->scheduled_tasks[i] != 0){
+            connection->scheduled_tasks_callback.callback = &battery_service_server_can_send_now;
+            connection->scheduled_tasks_callback.context  = (void*) connection;
+            att_server_register_can_send_now_callback(&connection->scheduled_tasks_callback, connection->con_handle);
+            return;
+        }
+    }
+}
+
+static void battery_service_server_set_notification_callback(battery_service_server_connection_t * connection, uint16_t battery_service_index, battery_service_characteristic_index_t characteristic_index){
+    btstack_assert(battery_service_index < BATTERY_SERVICE_SERVER_MAX_NUM_BATTERIES);
+
+    uint16_t task = (1 << (uint16_t)characteristic_index);
+
+    if (connection->con_handle == HCI_CON_HANDLE_INVALID){
+        connection->scheduled_tasks[battery_service_index] &= ~task;
+        return;
+    }    
+    
+    uint16_t scheduled_tasks = connection->scheduled_tasks[battery_service_index];
+    connection->scheduled_tasks[battery_service_index] |= task;
+
+    if (scheduled_tasks == 0){
+        connection->scheduled_tasks_callback.callback = &battery_service_server_can_send_now;
+        connection->scheduled_tasks_callback.context  = (void*) connection;
+        att_server_register_can_send_now_callback(&connection->scheduled_tasks_callback, connection->con_handle);
+    }
+}
+
 static uint16_t battery_service_read_callback(hci_con_handle_t con_handle, uint16_t attribute_handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size){
 	UNUSED(buffer_size);
 
     uint8_t i, j;
-    
     for (i = 0; i < bs_servers_num; i++){
         battery_service_data_t * battery_server = &bs_servers[bs_servers_num];
 
@@ -177,7 +265,7 @@ static int battery_service_write_callback(hci_con_handle_t con_handle, uint16_t 
 }
 
 void battery_service_v1_server_init(uint8_t battery_services_num, battery_service_data_t * battery_services, 
-     uint8_t clients_num, battery_service_server_connection_t * clients){
+    uint8_t clients_num, battery_service_server_connection_t * clients){
 
     btstack_assert(battery_services_num != 0);
     btstack_assert(battery_services != NULL);
