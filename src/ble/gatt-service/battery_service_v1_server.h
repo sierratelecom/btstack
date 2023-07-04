@@ -81,19 +81,28 @@ typedef enum {
 typedef struct {
     uint16_t value_handle;
     uint16_t client_configuration_handle;
-    uint16_t client_configuration;
 } battery_service_characteristic_t;
 
 typedef struct {
     att_service_handler_t  att_service;
-
     battery_service_characteristic_t characteristics[BS_CHARACTERISTIC_INDEX_NUM];
 } battery_service_data_t;
 
+typedef struct {
+    hci_con_handle_t con_handle;
+    uint16_t client_configurations[BS_CHARACTERISTIC_INDEX_NUM];
+} battery_service_server_connection_t;
+
 /**
  * @brief Init Battery Service Server with ATT DB
+ * 
+ * @param battery_services_num
+ * @param battery_services
+ * @param clients_num
+ * @param clients
  */
-void battery_service_v1_server_init(uint8_t battery_services_num, battery_service_data_t * battery_services);
+void battery_service_v1_server_init(uint8_t battery_services_num, battery_service_data_t * battery_services, 
+     uint8_t clients_num, battery_service_server_connection_t * clients);
 
 
 /* API_END */
