@@ -82,14 +82,42 @@ typedef enum {
     BS_CHARACTERISTIC_INDEX_NUM
 } battery_service_characteristic_index_t;
 
+typedef enum {
+    ENERGY_STATUS_FLAG_EXTERNAL_SOURCE_POWER = 0,
+    ENERGY_STATUS_FLAG_PRESENT_VOLTAGE,
+    ENERGY_STATUS_FLAG_AVAILABLE_ENERGY,
+    ENERGY_STATUS_FLAG_AVAILABLE_BATTERY_CAPACITY,
+    ENERGY_STATUS_FLAG_CHARGE_RATE,
+    ENERGY_STATUS_FLAG_AVAILABLE_ENERGY_AT_LAST_CHARGE
+} energy_status_flag_t;
+
 typedef struct {
     uint16_t value_handle;
     uint16_t client_configuration_handle;
 } battery_service_characteristic_t;
 
 typedef struct {
+    // represented as 2 octets
+    int8_t  exponent; //  4-bit
+    int16_t mantissa; // 12-bit
+} medfloat16_t;
+
+typedef struct {
     att_service_handler_t  att_service;
     battery_service_characteristic_t characteristics[BS_CHARACTERISTIC_INDEX_NUM];
+
+    // BS_CHARACTERISTIC_INDEX_BATTERY_LEVEL
+    uint8_t level;
+
+    // BS_CHARACTERISTIC_INDEX_BATTERY_ENERGY_STATUS
+    uint8_t energy_status_flags;                        // see energy_status_flag_t
+    medfloat16_t external_source_power_W;               // unit: watt, [0, ...)
+    medfloat16_t present_voltage_V;                     // unit: volt    
+    medfloat16_t available_energy_kWh;                  // unit: kilowatt hours, [0, ...)
+    medfloat16_t available_battery_capacity_kWh;        // unit: kilowatt hours, [0, ...)
+    medfloat16_t charge_rate_W;                         // unit: watt
+    medfloat16_t available_energy_at_last_charge_kWh;   // unit: kilowatt hours, [0, ...)
+
 } battery_service_data_t;
 
 typedef struct {
