@@ -92,6 +92,8 @@ static uint16_t              rx_worker_read_size;
 static wiced_ring_buffer_t   rx_ring_buffer;
 static uint8_t               rx_data[RX_RING_BUFFER_SIZE];
 
+static bool                 _worker_threads_created = false;
+
 // uart config
 static const btstack_uart_config_t * uart_config;
 
@@ -267,10 +269,17 @@ static int btstack_uart_block_wiced_open(void){
     // wait for Bluetooth to start up
     wiced_rtos_delay_milliseconds( 500 );
 
+    if (_worker_threads_created)
+    {
+        wiced_rtos_delete_worker_thread(&tx_worker_thread);
+        wiced_rtos_delete_worker_thread(&rx_worker_thread);
+        _worker_threads_created = false;
+    }
+
     // create worker threads for rx/tx. only single request is posted to their queues
     wiced_rtos_create_worker_thread(&tx_worker_thread, WICED_BT_UART_THREAD_PRIORITY, WICED_BT_UART_THREAD_STACK_SIZE, 1);
     wiced_rtos_create_worker_thread(&rx_worker_thread, WICED_BT_UART_THREAD_PRIORITY, WICED_BT_UART_THREAD_STACK_SIZE, 1);
-
+    _worker_threads_created = true;
     // tx is ready
     tx_worker_data_size = 0;
     return 0;
@@ -280,6 +289,7 @@ static int btstack_uart_block_wiced_close(void){
     // delete worker threads for rx/tx.
     wiced_rtos_delete_worker_thread(&tx_worker_thread);
     wiced_rtos_delete_worker_thread(&rx_worker_thread);
+    _worker_threads_created = false;
     return 0;
 }
 
