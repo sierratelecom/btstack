@@ -805,6 +805,12 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
  * @brief Set up HID Device 
  */
 void hid_device_init(bool boot_protocol_mode_supported, uint16_t descriptor_len, const uint8_t * descriptor){
+
+#ifndef HAVE_MALLOC
+    // HID Device requires at least one hid_device_connection_t object
+    btstack_assert(MAX_NR_HID_DEVICE_CONNECTIONS > 0);
+#endif
+
     hid_device_boot_protocol_mode_supported = boot_protocol_mode_supported;
     hid_device_descriptor =  descriptor;
     hid_device_descriptor_len = descriptor_len;
