@@ -140,6 +140,23 @@ static hid_device_connection_t * hid_device_create_connection(const uint8_t *bd_
     return &hid_device_singleton;
 }
 
+static void hid_device_finalize_connection(hid_device_connection_t * connection){
+    uint16_t interrupt_cid = connection->interrupt_cid;
+    uint16_t control_cid   = connection->control_cid;
+
+    connection->interrupt_cid = 0;
+    connection->control_cid = 0;
+
+    if (interrupt_cid != 0){
+        l2cap_disconnect(interrupt_cid);
+    }
+    if (control_cid != 0){
+        l2cap_disconnect(control_cid);
+    }
+
+    hid_device_singleton.cid = 0;
+}
+
 void hid_create_sdp_record(uint8_t *service, uint32_t service_record_handle, const hid_sdp_record_t * params){
     uint8_t * attribute;
     de_create_sequence(service);
@@ -661,6 +678,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                             // report error for outgoing connection
                             hid_device_emit_connected_event(connection, status);
                         }
+                        hid_device_finalize_connection(connection);
                         return;
                     }
 
@@ -714,6 +732,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                         connection->con_handle = HCI_CON_HANDLE_INVALID;
                         connection->cid = 0;
                         hid_device_emit_event(connection, HID_SUBEVENT_CONNECTION_CLOSED);
+                        hid_device_finalize_connection(connection);
                     }
                     break;
 
