@@ -45,6 +45,7 @@
 #include "btstack_debug.h"
 #include "btstack_event.h"
 #include "btstack_hid_parser.h"
+#include "btstack_memory.h"
 #include "classic/hid_device.h"
 #include "classic/sdp_util.h"
 #include "l2cap.h"
@@ -60,7 +61,7 @@ static int  (*hci_device_get_report)   (uint16_t hid_cid, hid_report_type_t repo
 static void (*hci_device_set_report)   (uint16_t hid_cid, hid_report_type_t report_type, int report_size, uint8_t * report) = dummy_set_report;
 static void (*hci_device_report_data)  (uint16_t hid_cid, hid_report_type_t report_type, uint16_t report_id, int report_size, uint8_t * report) = dummy_report_data;
 
-static hid_device_connection_t    hid_device_singleton;
+static btstack_linked_list_t    hid_device_connections;
 
 static bool            hid_device_boot_protocol_mode_supported;
 static const uint8_t * hid_device_descriptor;
@@ -102,45 +103,69 @@ static uint16_t hid_device_get_next_cid(void){
     return hid_device_cid;
 }
 
-// TODO: store hid device connection into list
-static hid_device_connection_t * hid_device_get_connection_for_l2cap_cid(uint16_t cid){
-    if ((hid_device_singleton.control_cid == cid) || (hid_device_singleton.interrupt_cid == cid)){
-        return &hid_device_singleton;
+static hid_device_connection_t * hid_device_get_connection_for_l2cap_cid(uint16_t l2cap_cid){
+    btstack_linked_list_iterator_t it;
+    btstack_linked_list_iterator_init(&it, &hid_device_connections);
+    while (btstack_linked_list_iterator_has_next(&it)){
+        hid_device_connection_t * connection = (hid_device_connection_t *)btstack_linked_list_iterator_next(&it);
+        if ((connection->interrupt_cid != l2cap_cid) && (connection->control_cid != l2cap_cid)) continue;
+        return connection;
     }
     return NULL;
 }
 
 static hid_device_connection_t * hid_device_get_connection_for_hid_cid(uint16_t hid_cid){
-    if (hid_device_singleton.cid == hid_cid){
-        return &hid_device_singleton;
+    btstack_linked_list_iterator_t it;
+    btstack_linked_list_iterator_init(&it, &hid_device_connections);
+    while (btstack_linked_list_iterator_has_next(&it)){
+        hid_device_connection_t * connection = (hid_device_connection_t *)btstack_linked_list_iterator_next(&it);
+        if (connection->cid != hid_cid) continue;
+        return connection;
     }
     return NULL;
 }
 
 static hid_device_connection_t * hid_device_get_connection_for_bd_addr(bd_addr_t bd_addr){
-    if (memcmp(bd_addr, hid_device_singleton.bd_addr, 6) == 0){
-        return &hid_device_singleton;
+    btstack_linked_list_iterator_t it;
+    btstack_linked_list_iterator_init(&it, &hid_device_connections);
+    while (btstack_linked_list_iterator_has_next(&it)){
+        hid_device_connection_t * connection = (hid_device_connection_t *)btstack_linked_list_iterator_next(&it);
+        if (memcmp(bd_addr, connection->bd_addr, 6) == 0){
+            return connection;
+        }
     }
     return NULL;
 }
 
 static hid_device_connection_t * hid_device_create_connection(const uint8_t *bd_addr){
-    hid_device_connection_t *hid_device = &hid_device_singleton;
-    const uint8_t *bd_addr_1;
-    (void) memcpy(hid_device->bd_addr, bd_addr_1, 6);
-    hid_device->cid = hid_device_get_next_cid();
+    hid_device_connection_t * connection = btstack_memory_hid_device_connection_get();
+    if (connection == NULL){
+        log_info("Not enough memory to create connection");
+        return NULL;
+    }
+
+    log_info("MEMORY create %p", connection);
+
+    connection->cid = hid_device_get_next_cid();
 
     // reset state
-    hid_device->protocol_mode = HID_PROTOCOL_MODE_REPORT;
-    hid_device->con_handle = HCI_CON_HANDLE_INVALID;
-    hid_device->incoming = 0;
-    hid_device->connected = 0;
-    hid_device->control_cid = 0;
-    hid_device->interrupt_cid = 0;
-    return &hid_device_singleton;
+    connection->protocol_mode = HID_PROTOCOL_MODE_REPORT;
+    connection->con_handle = HCI_CON_HANDLE_INVALID;
+    connection->incoming = 0;
+    connection->connected = 0;
+    connection->control_cid = 0;
+    connection->interrupt_cid = 0;
+
+    btstack_linked_list_add(&hid_device_connections, (btstack_linked_item_t *) connection);
+
+    (void) memcpy(connection->bd_addr, bd_addr, 6);
+    return connection;
 }
 
 static void hid_device_finalize_connection(hid_device_connection_t * connection){
+
+    log_info("MEMORY free %p", connection);
+
     uint16_t interrupt_cid = connection->interrupt_cid;
     uint16_t control_cid   = connection->control_cid;
 
@@ -153,8 +178,8 @@ static void hid_device_finalize_connection(hid_device_connection_t * connection)
     if (control_cid != 0){
         l2cap_disconnect(control_cid);
     }
-
-    hid_device_singleton.cid = 0;
+    btstack_linked_list_remove(&hid_device_connections, (btstack_linked_item_t*) connection);
+    btstack_memory_hid_device_connection_free(connection);
 }
 
 void hid_create_sdp_record(uint8_t *service, uint32_t service_record_handle, const hid_sdp_record_t * params){
@@ -853,7 +878,7 @@ void hid_device_deinit(void){
     hci_device_set_report = NULL;
     hci_device_report_data = NULL;
 
-    (void) memset(&hid_device_singleton, 0, sizeof(hid_device_connection_t));
+    hid_device_connections = NULL;
 
     hid_device_boot_protocol_mode_supported = false;
     hid_device_descriptor = NULL;
