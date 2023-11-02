@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - GATT Client: emit query complete event for gatt_client_discover_characteristic_descriptors in next run loop iteration
 - HFP: report 1.9 in SDP record
 - HID Parser: ignore Report Items without Usage
+- HID Device: support multiple connections, require MAX_NR_HID_DEVICE_CONNECTIONS to be set
 - btstack_crypto: allow MBEDTLS config via MBEDTLS_CONFIG_FILE
 - remove old Zephyr 1.9 port
 
