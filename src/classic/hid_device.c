@@ -54,37 +54,6 @@ static int dummy_write_report(uint16_t hid_cid, hid_report_type_t report_type, u
 static void dummy_set_report(uint16_t hid_cid, hid_report_type_t report_type, int report_size, uint8_t * report);
 static void dummy_report_data(uint16_t hid_cid, hid_report_type_t report_type, uint16_t report_id, int report_size, uint8_t * report);
 
-typedef enum {
-    HID_DEVICE_IDLE,
-    HID_DEVICE_CONNECTED,
-    HID_DEVICE_W2_GET_REPORT,
-    HID_DEVICE_W2_SET_REPORT,
-    HID_DEVICE_W2_GET_PROTOCOL,
-    HID_DEVICE_W2_SET_PROTOCOL,
-    HID_DEVICE_W2_ANSWER_SET_PROTOCOL,
-    HID_DEVICE_W2_SEND_UNSUPPORTED_REQUEST,
-} hid_device_state_t;
-
-// hid device state
-typedef struct hid_device {
-    uint16_t  cid;
-    bd_addr_t bd_addr;
-    hci_con_handle_t con_handle;
-    uint16_t  control_cid;
-    uint16_t  interrupt_cid;
-    uint8_t   incoming;
-    uint8_t   connected;
-    hid_device_state_t state;
-    hid_report_type_t report_type;
-    uint8_t   report_id;
-    uint16_t  expected_report_size;
-    uint16_t  response_size;
-    uint8_t   user_request_can_send_now;
-
-    hid_handshake_param_type_t report_status;
-    hid_protocol_mode_t protocol_mode;
-} hid_device_connection_t;
-
 // higher layer callbacks
 static btstack_packet_handler_t hid_device_callback;
 static int  (*hci_device_get_report)   (uint16_t hid_cid, hid_report_type_t report_type, uint16_t report_id, int * out_report_size, uint8_t * out_report) = dummy_write_report;

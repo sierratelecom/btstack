@@ -53,6 +53,36 @@
 extern "C" {
 #endif
 
+typedef enum {
+    HID_DEVICE_IDLE,
+    HID_DEVICE_CONNECTED,
+    HID_DEVICE_W2_GET_REPORT,
+    HID_DEVICE_W2_SET_REPORT,
+    HID_DEVICE_W2_GET_PROTOCOL,
+    HID_DEVICE_W2_SET_PROTOCOL,
+    HID_DEVICE_W2_ANSWER_SET_PROTOCOL,
+    HID_DEVICE_W2_SEND_UNSUPPORTED_REQUEST,
+} hid_device_state_t;
+
+// hid device state
+typedef struct hid_device {
+    uint16_t  cid;
+    bd_addr_t bd_addr;
+    hci_con_handle_t con_handle;
+    uint16_t  control_cid;
+    uint16_t  interrupt_cid;
+    uint8_t   incoming;
+    uint8_t   connected;
+    hid_device_state_t state;
+    hid_report_type_t report_type;
+    uint8_t   report_id;
+    uint16_t  expected_report_size;
+    uint16_t  response_size;
+    uint8_t   user_request_can_send_now;
+
+    hid_handshake_param_type_t report_status;
+    hid_protocol_mode_t protocol_mode;
+} hid_device_connection_t;
 
 /* API_START */
 
