@@ -1160,6 +1160,11 @@ static void hid_host_packet_handler(uint8_t packet_type, uint16_t channel, uint8
 
 
 void hid_host_init(uint8_t * hid_descriptor_storage, uint16_t hid_descriptor_storage_len){
+#ifndef HAVE_MALLOC
+    // HID Host requires at least one hid_host_connection_t object
+    btstack_assert(MAX_NR_HID_HOST_CONNECTIONS > 0);
+#endif
+
     hid_host_descriptor_storage = hid_descriptor_storage;
     hid_host_descriptor_storage_len = hid_descriptor_storage_len;
 
