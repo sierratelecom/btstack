@@ -66,6 +66,8 @@ typedef enum {
 
 // hid device state
 typedef struct hid_device {
+    btstack_linked_item_t item;
+
     uint16_t  cid;
     bd_addr_t bd_addr;
     hci_con_handle_t con_handle;
