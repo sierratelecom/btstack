@@ -170,24 +170,26 @@ For each HCI connection, a buffer of size HCI_ACL_PAYLOAD_SIZE is reserved. For 
 <!-- a name "lst:memoryConfiguration"></a-->
 <!-- -->
 
-| \#define                                  | Description                                                                |
-|-------------------------------------------|----------------------------------------------------------------------------|
-| HCI_ACL_PAYLOAD_SIZE                      | Max size of HCI ACL payloads                                               |
-| HCI_ACL_CHUNK_SIZE_ALIGNMENT              | Alignment of ACL chunk size, can be used to align HCI transport writes     |
-| HCI_INCOMING_PRE_BUFFER_SIZE              | Number of bytes reserved before actual data for incoming HCI packets       |
-| MAX_NR_BNEP_CHANNELS                      | Max number of BNEP channels                                                |
-| MAX_NR_BNEP_SERVICES                      | Max number of BNEP services                                                |
-| MAX_NR_GATT_CLIENTS                       | Max number of GATT clients                                                 |
-| MAX_NR_HCI_CONNECTIONS                    | Max number of HCI connections                                              |
-| MAX_NR_HFP_CONNECTIONS                    | Max number of HFP connections                                              |
-| MAX_NR_L2CAP_CHANNELS                     | Max number of L2CAP connections                                            |
-| MAX_NR_L2CAP_SERVICES                     | Max number of L2CAP services                                               |
-| MAX_NR_RFCOMM_CHANNELS                    | Max number of RFOMMM connections                                           |
-| MAX_NR_RFCOMM_MULTIPLEXERS                | Max number of RFCOMM multiplexers, with one multiplexer per HCI connection |
-| MAX_NR_RFCOMM_SERVICES                    | Max number of RFCOMM services                                              |
-| MAX_NR_SERVICE_RECORD_ITEMS               | Max number of SDP service records                                          |
-| MAX_NR_SM_LOOKUP_ENTRIES                  | Max number of items in Security Manager lookup queue                       |
-| MAX_NR_WHITELIST_ENTRIES                  | Max number of items in GAP LE Whitelist to connect to                      |
+| \#define                        | Description                                                                |
+|---------------------------------|----------------------------------------------------------------------------|
+| HCI_ACL_PAYLOAD_SIZE            | Max size of HCI ACL payloads                                               |
+| HCI_ACL_CHUNK_SIZE_ALIGNMENT    | Alignment of ACL chunk size, can be used to align HCI transport writes     |
+| HCI_INCOMING_PRE_BUFFER_SIZE    | Number of bytes reserved before actual data for incoming HCI packets       |
+| MAX_NR_BNEP_CHANNELS            | Max number of BNEP channels                                                |
+| MAX_NR_BNEP_SERVICES            | Max number of BNEP services                                                |
+| MAX_NR_GATT_CLIENTS             | Max number of GATT clients                                                 |
+| MAX_NR_HCI_CONNECTIONS          | Max number of HCI connections                                              |
+| MAX_NR_HID_DEVICE_CONNECTIONS   | Max number of HID Connection in HID Device role                            |
+| MAX_NR_HID_HOST_CONNECTIONS     | Max number of HID Connection in HID Host role                              |
+| MAX_NR_HFP_CONNECTIONS          | Max number of HFP connections                                              |
+| MAX_NR_L2CAP_CHANNELS           | Max number of L2CAP connections                                            |
+| MAX_NR_L2CAP_SERVICES           | Max number of L2CAP services                                               |
+| MAX_NR_RFCOMM_CHANNELS          | Max number of RFOMMM connections                                           |
+| MAX_NR_RFCOMM_MULTIPLEXERS      | Max number of RFCOMM multiplexers, with one multiplexer per HCI connection |
+| MAX_NR_RFCOMM_SERVICES          | Max number of RFCOMM services                                              |
+| MAX_NR_SERVICE_RECORD_ITEMS     | Max number of SDP service records                                          |
+| MAX_NR_SM_LOOKUP_ENTRIES        | Max number of items in Security Manager lookup queue                       |
+| MAX_NR_WHITELIST_ENTRIES        | Max number of items in GAP LE Whitelist to connect to                      |
 
 The memory is set up by calling *btstack_memory_init* function:
 

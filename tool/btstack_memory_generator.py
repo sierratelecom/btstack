@@ -75,6 +75,7 @@ extern "C" {
 #include "classic/btstack_link_key_db_memory.h"
 #include "classic/goep_server.h"
 #include "classic/hfp.h"
+#include "classic/hid_device.h"
 #include "classic/hid_host.h"
 #include "classic/rfcomm.h"
 #include "classic/sdp_server.h"
@@ -284,7 +285,7 @@ list_of_classic_structs = [
     ["bnep_service", "bnep_channel"],
     ["goep_server_service", "goep_server_connection"],
     ["hfp_connection"],
-    ["hid_host_connection"],
+    ["hid_host_connection","hid_device_connection"],
     ["service_record_item"],
     ["avdtp_stream_endpoint"],
     ["avdtp_connection"],

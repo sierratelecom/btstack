@@ -865,6 +865,63 @@ void btstack_memory_hid_host_connection_free(hid_host_connection_t *hid_host_con
 #endif
 
 
+// MARK: hid_device_connection_t
+#if !defined(HAVE_MALLOC) && !defined(MAX_NR_HID_DEVICE_CONNECTIONS)
+    #if defined(MAX_NO_HID_DEVICE_CONNECTIONS)
+        #error "Deprecated MAX_NO_HID_DEVICE_CONNECTIONS defined instead of MAX_NR_HID_DEVICE_CONNECTIONS. Please update your btstack_config.h to use MAX_NR_HID_DEVICE_CONNECTIONS."
+    #else
+        #define MAX_NR_HID_DEVICE_CONNECTIONS 0
+    #endif
+#endif
+
+#ifdef MAX_NR_HID_DEVICE_CONNECTIONS
+#if MAX_NR_HID_DEVICE_CONNECTIONS > 0
+static hid_device_connection_t hid_device_connection_storage[MAX_NR_HID_DEVICE_CONNECTIONS];
+static btstack_memory_pool_t hid_device_connection_pool;
+hid_device_connection_t * btstack_memory_hid_device_connection_get(void){
+    void * buffer = btstack_memory_pool_get(&hid_device_connection_pool);
+    if (buffer){
+        memset(buffer, 0, sizeof(hid_device_connection_t));
+    }
+    return (hid_device_connection_t *) buffer;
+}
+void btstack_memory_hid_device_connection_free(hid_device_connection_t *hid_device_connection){
+    btstack_memory_pool_free(&hid_device_connection_pool, hid_device_connection);
+}
+#else
+hid_device_connection_t * btstack_memory_hid_device_connection_get(void){
+    return NULL;
+}
+void btstack_memory_hid_device_connection_free(hid_device_connection_t *hid_device_connection){
+    UNUSED(hid_device_connection);
+};
+#endif
+#elif defined(HAVE_MALLOC)
+
+typedef struct {
+    btstack_memory_buffer_t tracking;
+    hid_device_connection_t data;
+} btstack_memory_hid_device_connection_t;
+
+hid_device_connection_t * btstack_memory_hid_device_connection_get(void){
+    btstack_memory_hid_device_connection_t * buffer = (btstack_memory_hid_device_connection_t *) malloc(sizeof(btstack_memory_hid_device_connection_t));
+    if (buffer){
+        memset(buffer, 0, sizeof(btstack_memory_hid_device_connection_t));
+        btstack_memory_tracking_add(&buffer->tracking);
+        return &buffer->data;
+    } else {
+        return NULL;
+    }
+}
+void btstack_memory_hid_device_connection_free(hid_device_connection_t *hid_device_connection){
+    // reconstruct buffer start
+    btstack_memory_buffer_t * buffer = &((btstack_memory_buffer_t *) hid_device_connection)[-1];
+    btstack_memory_tracking_remove(buffer);
+    free(buffer);
+}
+#endif
+
+
 
 // MARK: service_record_item_t
 #if !defined(HAVE_MALLOC) && !defined(MAX_NR_SERVICE_RECORD_ITEMS)
@@ -2074,6 +2131,9 @@ void btstack_memory_init(void){
 
 #if MAX_NR_HID_HOST_CONNECTIONS > 0
     btstack_memory_pool_create(&hid_host_connection_pool, hid_host_connection_storage, MAX_NR_HID_HOST_CONNECTIONS, sizeof(hid_host_connection_t));
+#endif
+#if MAX_NR_HID_DEVICE_CONNECTIONS > 0
+    btstack_memory_pool_create(&hid_device_connection_pool, hid_device_connection_storage, MAX_NR_HID_DEVICE_CONNECTIONS, sizeof(hid_device_connection_t));
 #endif
 
 #if MAX_NR_SERVICE_RECORD_ITEMS > 0

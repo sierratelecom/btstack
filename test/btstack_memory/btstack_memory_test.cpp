@@ -639,6 +639,48 @@ TEST(btstack_memory, hid_host_connection_NotEnoughBuffers){
 
 
 
+TEST(btstack_memory, hid_device_connection_GetAndFree){
+    hid_device_connection_t * context;
+#ifdef HAVE_MALLOC
+    context = btstack_memory_hid_device_connection_get();
+    CHECK(context != NULL);
+    btstack_memory_hid_device_connection_free(context);
+#else
+#ifdef MAX_NR_HID_DEVICE_CONNECTIONS
+    // single
+    context = btstack_memory_hid_device_connection_get();
+    CHECK(context != NULL);
+    btstack_memory_hid_device_connection_free(context);
+#else
+    // none
+    context = btstack_memory_hid_device_connection_get();
+    CHECK(context == NULL);
+    btstack_memory_hid_device_connection_free(context);
+#endif
+#endif
+}
+
+TEST(btstack_memory, hid_device_connection_NotEnoughBuffers){
+    hid_device_connection_t * context;
+#ifdef HAVE_MALLOC
+    simulate_no_memory = 1;
+#else
+#ifdef MAX_NR_HID_DEVICE_CONNECTIONS
+    int i;
+    // alloc all static buffers
+    for (i = 0; i < MAX_NR_HID_DEVICE_CONNECTIONS; i++){
+        context = btstack_memory_hid_device_connection_get();
+        CHECK(context != NULL);
+    }
+#endif
+#endif
+    // get one more
+    context = btstack_memory_hid_device_connection_get();
+    CHECK(context == NULL);
+}
+
+
+
 
 TEST(btstack_memory, service_record_item_GetAndFree){
     service_record_item_t * context;
