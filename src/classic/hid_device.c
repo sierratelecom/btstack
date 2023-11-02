@@ -83,7 +83,7 @@ typedef struct hid_device {
 
     hid_handshake_param_type_t report_status;
     hid_protocol_mode_t protocol_mode;
-} hid_device_t;
+} hid_device_connection_t;
 
 // higher layer callbacks
 static btstack_packet_handler_t hid_device_callback;
@@ -91,7 +91,7 @@ static int  (*hci_device_get_report)   (uint16_t hid_cid, hid_report_type_t repo
 static void (*hci_device_set_report)   (uint16_t hid_cid, hid_report_type_t report_type, int report_size, uint8_t * report) = dummy_set_report;
 static void (*hci_device_report_data)  (uint16_t hid_cid, hid_report_type_t report_type, uint16_t report_id, int report_size, uint8_t * report) = dummy_report_data;
 
-static hid_device_t    hid_device_singleton;
+static hid_device_connection_t    hid_device_singleton;
 
 static bool            hid_device_boot_protocol_mode_supported;
 static const uint8_t * hid_device_descriptor;
@@ -134,21 +134,21 @@ static uint16_t hid_device_get_next_cid(void){
 }
 
 // TODO: store hid device connection into list
-static hid_device_t * hid_device_get_instance_for_l2cap_cid(uint16_t cid){
+static hid_device_connection_t * hid_device_get_instance_for_l2cap_cid(uint16_t cid){
     if ((hid_device_singleton.control_cid == cid) || (hid_device_singleton.interrupt_cid == cid)){
         return &hid_device_singleton;
     }
     return NULL;
 }
 
-static hid_device_t * hid_device_get_instance_for_hid_cid(uint16_t hid_cid){
+static hid_device_connection_t * hid_device_get_instance_for_hid_cid(uint16_t hid_cid){
     if (hid_device_singleton.cid == hid_cid){
         return &hid_device_singleton;
     }
     return NULL;
 }
 
-static void hid_device_setup_instance(hid_device_t *hid_device, const uint8_t *bd_addr) {
+static void hid_device_setup_instance(hid_device_connection_t *hid_device, const uint8_t *bd_addr) {
     (void)memcpy(hid_device->bd_addr, bd_addr, 6);
     hid_device->cid = hid_device_get_next_cid();
     // reset state
@@ -160,14 +160,14 @@ static void hid_device_setup_instance(hid_device_t *hid_device, const uint8_t *b
     hid_device->interrupt_cid = 0;
 }
 
-static hid_device_t * hid_device_provide_instance_for_bd_addr(bd_addr_t bd_addr){
+static hid_device_connection_t * hid_device_provide_instance_for_bd_addr(bd_addr_t bd_addr){
     if (!hid_device_singleton.cid){
         hid_device_setup_instance(&hid_device_singleton, bd_addr);
     }
     return &hid_device_singleton;
 }
 
-static hid_device_t * hid_device_create_instance(void){
+static hid_device_connection_t * hid_device_create_instance(void){
 
     return &hid_device_singleton;
 }
@@ -318,7 +318,7 @@ void hid_create_sdp_record(uint8_t *service, uint32_t service_record_handle, con
     de_add_number(service,  DE_UINT, DE_SIZE_16, params->hid_ssr_host_min_timeout);
 }
 
-static inline void hid_device_emit_connected_event(hid_device_t * context, uint8_t status){
+static inline void hid_device_emit_connected_event(hid_device_connection_t * context, uint8_t status){
     uint8_t event[15];
     int pos = 0;
     event[pos++] = HCI_EVENT_HID_META;
@@ -336,7 +336,7 @@ static inline void hid_device_emit_connected_event(hid_device_t * context, uint8
     hid_device_callback(HCI_EVENT_PACKET, context->cid, &event[0], pos);
 }   
 
-static inline void hid_device_emit_event(hid_device_t * context, uint8_t subevent_type){
+static inline void hid_device_emit_event(hid_device_connection_t * context, uint8_t subevent_type){
     uint8_t event[5];
     int pos = 0;
     event[pos++] = HCI_EVENT_HID_META;
@@ -348,13 +348,13 @@ static inline void hid_device_emit_event(hid_device_t * context, uint8_t subeven
     hid_device_callback(HCI_EVENT_PACKET, context->cid, &event[0], pos);
 }
 
-static void hid_device_trigger_user_request_if_pending(const hid_device_t *hid_device) {// request user can send now if pending
+static void hid_device_trigger_user_request_if_pending(const hid_device_connection_t *hid_device) {// request user can send now if pending
     if (hid_device->user_request_can_send_now){
         l2cap_request_can_send_now_event((hid_device->control_cid));
     }
 }
 
-static void hid_device_send_prepared_control_message(hid_device_t * hid_device, uint16_t message_len){
+static void hid_device_send_prepared_control_message(hid_device_connection_t * hid_device, uint16_t message_len){
     l2cap_send_prepared(hid_device->control_cid, message_len);
     hid_device_trigger_user_request_if_pending(hid_device);
 }
@@ -436,7 +436,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
     int connected_before;
     uint16_t psm;
     uint8_t status;
-    hid_device_t * device = NULL;
+    hid_device_connection_t * device = NULL;
     uint8_t param;
     bd_addr_t address;
     uint16_t local_cid;
@@ -853,7 +853,7 @@ void hid_device_deinit(void){
     hci_device_set_report = NULL;
     hci_device_report_data = NULL;
 
-    (void) memset(&hid_device_singleton, 0, sizeof(hid_device_t));
+    (void) memset(&hid_device_singleton, 0, sizeof(hid_device_connection_t));
 
     hid_device_boot_protocol_mode_supported = false;
     hid_device_descriptor = NULL;
@@ -896,7 +896,7 @@ void hid_device_register_report_data_callback(void (*callback)(uint16_t cid, hid
  * @param hid_cid
  */
 void hid_device_request_can_send_now_event(uint16_t hid_cid){
-    hid_device_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
+    hid_device_connection_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
     if (!hid_device || !hid_device->interrupt_cid) return;
     hid_device->user_request_can_send_now = 1;
     l2cap_request_can_send_now_event(hid_device->interrupt_cid);
@@ -907,7 +907,7 @@ void hid_device_request_can_send_now_event(uint16_t hid_cid){
  * @param hid_cid
  */
 void hid_device_send_interrupt_message(uint16_t hid_cid, const uint8_t * message, uint16_t message_len){
-    hid_device_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
+    hid_device_connection_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
     if (!hid_device || !hid_device->interrupt_cid) return;
     l2cap_send(hid_device->interrupt_cid, (uint8_t*) message, message_len);
     if (hid_device->user_request_can_send_now){
@@ -920,7 +920,7 @@ void hid_device_send_interrupt_message(uint16_t hid_cid, const uint8_t * message
  * @param hid_cid
  */
 void hid_device_send_control_message(uint16_t hid_cid, const uint8_t * message, uint16_t message_len){
-    hid_device_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
+    hid_device_connection_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
     if (!hid_device || !hid_device->control_cid) return;
     l2cap_send(hid_device->control_cid, (uint8_t*) message, message_len);
     hid_device_trigger_user_request_if_pending(hid_device);
@@ -933,7 +933,7 @@ void hid_device_send_control_message(uint16_t hid_cid, const uint8_t * message, 
  * @result status
  */
 uint8_t hid_device_connect(bd_addr_t addr, uint16_t * hid_cid){
-    hid_device_t * hid_device = hid_device_create_instance();
+    hid_device_connection_t * hid_device = hid_device_create_instance();
     if (!hid_device){
         log_error("hid_device_connect: could not create a hid device instace");
         return BTSTACK_MEMORY_ALLOC_FAILED; 
@@ -955,7 +955,7 @@ uint8_t hid_device_connect(bd_addr_t addr, uint16_t * hid_cid){
  * @result status
  */
 void hid_device_disconnect_interrupt_channel(uint16_t hid_cid){
-    hid_device_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
+    hid_device_connection_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
     if (!hid_device){
         log_error("hid_device_disconnect_interrupt_channel: could not find hid device instace");
         return;
@@ -967,7 +967,7 @@ void hid_device_disconnect_interrupt_channel(uint16_t hid_cid){
 }
 
 void hid_device_disconnect_control_channel(uint16_t hid_cid){
-    hid_device_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
+    hid_device_connection_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
     if (!hid_device){
         log_error("hid_device_disconnect_control_channel: could not find hid device instace");
         return;
@@ -979,7 +979,7 @@ void hid_device_disconnect_control_channel(uint16_t hid_cid){
 }
 
 void hid_device_disconnect(uint16_t hid_cid){
-    hid_device_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
+    hid_device_connection_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
     if (!hid_device){
         log_error("hid_device_disconnect: could not find hid device instace");
         return;
@@ -994,7 +994,7 @@ void hid_device_disconnect(uint16_t hid_cid){
 }
 
 int hid_device_in_boot_protocol_mode(uint16_t hid_cid){
-    hid_device_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
+    hid_device_connection_t * hid_device = hid_device_get_instance_for_hid_cid(hid_cid);
     if (!hid_device){
         log_error("hid_device_in_boot_protocol_mode: could not find hid device instace");
         return 0;
