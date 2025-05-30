@@ -30,7 +30,7 @@
  * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * Please inquire about commercial licensing options at 
+ * Please inquire about commercial licensing options at
  * contact@bluekitchen-gmbh.com
  *
  */
@@ -55,13 +55,13 @@
 extern "C" {
 #endif
 
-    
+
 /* API_START */
 
 /* HCI packet types */
 typedef struct {
     /**
-     * transport name 
+     * transport name
      */
     const char * name;
 
@@ -126,7 +126,7 @@ typedef struct {
     hci_transport_config_type_t type; // == HCI_TRANSPORT_CONFIG_UART
     uint32_t   baudrate_init; // initial baud rate
     uint32_t   baudrate_main; // = 0: same as initial baudrate
-    int        flowcontrol;   // 
+    int        flowcontrol;   //
     const char *device_name;
 } hci_transport_config_uart_t;
 
@@ -135,19 +135,19 @@ typedef struct {
 
 /*
  * @brief Setup H4 instance with uart_driver
- * @param uart_driver to use 
+ * @param uart_driver to use
  */
 const hci_transport_t * hci_transport_h4_instance(const btstack_uart_block_t * uart_driver);
 
 /*
  * @brief Setup H5 instance with uart_driver
- * @param uart_driver to use 
+ * @param uart_driver to use
  */
 const hci_transport_t * hci_transport_h5_instance(const btstack_uart_block_t * uart_driver);
 
 /*
  * @brief Setup H4 over SPI instance for EM9304 with em9304_spi_driver
- * @param em9304_spi_driver to use 
+ * @param em9304_spi_driver to use
  */
 const hci_transport_t * hci_transport_em9304_spi_instance(const btstack_em9304_spi_t * em9304_spi_driver);
 
@@ -167,13 +167,18 @@ void hci_transport_h5_enable_bcsp_mode(void);
  */
 const hci_transport_t * hci_transport_usb_instance(void);
 
+/*
+ * @brief
+ */
+const hci_transport_t * hci_transport_bluez_instance(void);
+
 /**
  * @brief Specify USB Bluetooth device via port numbers from root to device
  */
 void hci_transport_usb_set_path(int len, uint8_t * port_numbers);
 
 /* API_END */
-    
+
 #if defined __cplusplus
 }
 #endif
