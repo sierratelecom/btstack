@@ -1,11 +1,14 @@
 
 #define BTSTACK_FILE__ "hci_transport_bluez.c"
 
+#include <sys/socket.h>
+
 #include "btstack_config.h"
 
 #include "btstack_debug.h"
 #include "hci.h"
 #include "hci_transport.h"
+#include "hci_transport_bluez_posix.h"
 
 /*
 *  hci_transport_bluez.c
@@ -30,7 +33,19 @@ static void dummy_handler(uint8_t packet_type, uint8_t *packet, uint16_t size)
 
 void hci_transport_bluez_init(const void * transport_config)
 {
+    const char* iface = transport_config;
+    printf("%s() iface='%s'\n", __FUNCTION__, iface);
+#if 0
+    int fd = socket(PF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
+    printf("%s() fd=%d\n", __FUNCTION__, fd);
+    if (fd < 0)
+    {
+        printf("socket(): fd < 0\n");
+        return;
+    }
+#endif
 
+    hci_transport_bluez_posix_list_ifaces();
 }
 
 int hci_transport_bluez_open(void)
@@ -63,17 +78,9 @@ int hci_transport_bluez_send_packet(uint8_t packet_type, uint8_t *packet, int si
     return 0;
 }
 
-int hci_transport_bluez_set_baudrate(uint32_t baudrate)
-{
-    UNUSED(baudrate);
-    return 0;
-}
-
-
 // configure and return bluez singleton
 const hci_transport_t * hci_transport_bluez_instance(void)
 {
-
     static const hci_transport_t hci_transport_bluez = {
 
             /* const char * name; */                                        "BlueZ",
@@ -83,11 +90,10 @@ const hci_transport_t * hci_transport_bluez_instance(void)
             /* void   (*register_packet_handler)(void (*handler)(...); */   &hci_transport_bluez_register_packet_handler,
             /* int    (*can_send_packet_now)(uint8_t packet_type); */       &hci_transport_bluez_can_send_now,
             /* int    (*send_packet)(...); */                               &hci_transport_bluez_send_packet,
-            /* int    (*set_baudrate)(uint32_t baudrate); */                &hci_transport_bluez_set_baudrate,
+            /* int    (*set_baudrate)(uint32_t baudrate); */                NULL,
             /* void   (*reset_link)(void); */                               NULL,
             /* void   (*set_sco_config)(uint16_t voice_setting, int num_connections); */ NULL,
     };
 
-    //btstack_iface = iface_name;
     return &hci_transport_bluez;
 }
