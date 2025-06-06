@@ -9,10 +9,16 @@
 
 #include "hci_transport_bluez_posix.h"
 
+static void dummy_handler(uint8_t packet_type, uint8_t *packet, uint16_t size);
+static int hci_transport_bluez_posix_list_ifaces(void);
+
+static void (*packet_handler)(uint8_t packet_type, uint8_t *packet, uint16_t size) = dummy_handler;
+//const char *btstack_iface = "";
+
 /**
  * @brief Enumerate available Bluetooth HCI interfaces
  */
-int hci_transport_bluez_posix_list_ifaces()
+static int hci_transport_bluez_posix_list_ifaces()
 {
     int sock;
     struct hci_dev_list_req *dl;
@@ -68,5 +74,71 @@ int hci_transport_bluez_posix_list_ifaces()
     free(dl);
 
     close(sock);
+    return 0;
+}
+
+void hci_transport_bluez_init(const void * transport_config)
+{
+    const char* iface = transport_config;
+    printf("%s() iface='%s'\n", __FUNCTION__, iface);
+#if 0
+    int fd = socket(PF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
+    printf("%s() fd=%d\n", __FUNCTION__, fd);
+    if (fd < 0)
+    {
+        printf("socket(): fd < 0\n");
+        return;
+    }
+#endif
+
+    hci_transport_bluez_posix_list_ifaces();
+}
+
+int hci_transport_bluez_open(void)
+{
+    printf("Called %s()\n", __FUNCTION__);
+    return 0;
+}
+
+int hci_transport_bluez_close(void)
+{
+    printf("Called %s()\n", __FUNCTION__);
+    return 0;
+}
+
+static void dummy_handler(uint8_t packet_type, uint8_t *packet, uint16_t size)
+{
+    (void)packet_type;
+    (void)packet;
+    (void)size;
+}
+
+void hci_transport_bluez_register_packet_handler(void (*handler)(uint8_t packet_type, uint8_t *packet, uint16_t size))
+{
+    printf("Called %s()\n", __FUNCTION__);
+    packet_handler = handler;
+}
+
+
+int hci_transport_bluez_can_send_now(uint8_t packet_type)
+{
+    printf("Called %s(%u)\n", __FUNCTION__, packet_type);
+    (void)packet_type;
+    return 1;
+}
+
+int hci_transport_bluez_send_packet(uint8_t packet_type, uint8_t *packet, int size)
+{
+    printf("Called %s(%u, %d) ", __FUNCTION__, packet_type, size);
+    for (int i = 0; i < size; i++)
+    {
+        printf("[%02x]", packet[i]);
+    }
+    printf("\n");
+
+    (void)packet_type;
+    (void)packet;
+    (void)size;
+
     return 0;
 }

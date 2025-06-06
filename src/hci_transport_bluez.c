@@ -18,66 +18,6 @@
 *  Created by Dmitry Savinkin on 30/5/25.
 */
 
-static void dummy_handler(uint8_t packet_type, uint8_t *packet, uint16_t size);
-
-
-static void (*packet_handler)(uint8_t packet_type, uint8_t *packet, uint16_t size) = dummy_handler;
-//const char *btstack_iface = "";
-
-static void dummy_handler(uint8_t packet_type, uint8_t *packet, uint16_t size)
-{
-    UNUSED(packet_type);
-    UNUSED(packet);
-    UNUSED(size);
-}
-
-void hci_transport_bluez_init(const void * transport_config)
-{
-    const char* iface = transport_config;
-    printf("%s() iface='%s'\n", __FUNCTION__, iface);
-#if 0
-    int fd = socket(PF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
-    printf("%s() fd=%d\n", __FUNCTION__, fd);
-    if (fd < 0)
-    {
-        printf("socket(): fd < 0\n");
-        return;
-    }
-#endif
-
-    hci_transport_bluez_posix_list_ifaces();
-}
-
-int hci_transport_bluez_open(void)
-{
-    return 0;
-}
-
-int hci_transport_bluez_close(void)
-{
-    return 0;
-}
-
-static void hci_transport_bluez_register_packet_handler(void (*handler)(uint8_t packet_type, uint8_t *packet, uint16_t size))
-{
-    packet_handler = handler;
-}
-
-int hci_transport_bluez_can_send_now(uint8_t packet_type)
-{
-    UNUSED(packet_type);
-    return 0;
-}
-
-int hci_transport_bluez_send_packet(uint8_t packet_type, uint8_t *packet, int size)
-{
-    UNUSED(packet_type);
-    UNUSED(packet);
-    UNUSED(size);
-
-    return 0;
-}
-
 // configure and return bluez singleton
 const hci_transport_t * hci_transport_bluez_instance(void)
 {
