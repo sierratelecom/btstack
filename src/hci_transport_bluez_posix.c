@@ -27,15 +27,17 @@ int hci_transport_bluez_posix_list_ifaces()
 
     // Allocate memory for device list (max 16 adapters)
     int max_devs = HCI_MAX_DEV;
-    dl = malloc(max_devs * sizeof(struct hci_dev_req) + sizeof(uint16_t));
+    size_t m_size = max_devs * sizeof(struct hci_dev_req) + sizeof(struct hci_dev_list_req);
+
+    dl = malloc(m_size);
     if (!dl) {
         perror("malloc");
         close(sock);
         return 1;
     }
 
-    memset(dl, 0, max_devs * sizeof(struct hci_dev_req) + sizeof(uint16_t));
-    dl->dev_num = max_devs - 1;
+    memset(dl, 0, m_size);
+    dl->dev_num = max_devs;
 
     // Fetch the device list
     if (ioctl(sock, HCIGETDEVLIST, (void *)dl) < 0) {
