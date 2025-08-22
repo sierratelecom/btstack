@@ -30,7 +30,7 @@
  * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * Please inquire about commercial licensing options at 
+ * Please inquire about commercial licensing options at
  * contact@bluekitchen-gmbh.com
  *
  */
@@ -122,7 +122,7 @@ static bool btstack_run_loop_posix_remove_timer(btstack_timer_source_t *ts){
 }
 
 static void btstack_run_loop_posix_dump_timer(void){
-#ifdef ENABLE_LOG_INFO    
+#ifdef ENABLE_LOG_INFO
     btstack_linked_item_t *it;
     int i = 1;
     for (it = (btstack_linked_item_t *) timers; it ; it = it->next){
@@ -199,7 +199,7 @@ static uint32_t btstack_run_loop_posix_get_time_ms(void){
 static void btstack_run_loop_posix_execute(void) {
     fd_set descriptors_read;
     fd_set descriptors_write;
-    
+
     btstack_timer_source_t       *ts;
     btstack_linked_list_iterator_t it;
     struct timeval * timeout;
@@ -236,7 +236,7 @@ static void btstack_run_loop_posix_execute(void) {
                 log_debug("btstack_run_loop_execute adding fd %u for write", ds->source.fd);
             }
         }
-        
+
         // get next timeout
         timeout = NULL;
         if (timers) {
@@ -252,10 +252,10 @@ static void btstack_run_loop_posix_execute(void) {
             tv.tv_usec = (int) (delta - (tv.tv_sec * 1000)) * 1000;
             log_debug("btstack_run_loop_execute next timeout in %u ms", delta);
         }
-                
+
         // wait for ready FDs
         select( highest_fd+1 , &descriptors_read, &descriptors_write, NULL, timeout);
-                
+        //printf("highest_fd=%d\n", highest_fd);
 
         data_sources_modified = 0;
         btstack_linked_list_iterator_init(&it, &data_sources);
@@ -263,6 +263,7 @@ static void btstack_run_loop_posix_execute(void) {
             btstack_data_source_t *ds = (btstack_data_source_t*) btstack_linked_list_iterator_next(&it);
             log_debug("btstack_run_loop_posix_execute: check ds %p with fd %u\n", ds, ds->source.fd);
             if (FD_ISSET(ds->source.fd, &descriptors_read)) {
+                //printf("process fd=%d\n", ds->source.fd);
                 log_debug("btstack_run_loop_posix_execute: process read ds %p with fd %u\n", ds, ds->source.fd);
                 ds->process(ds, DATA_SOURCE_CALLBACK_READ);
             }
@@ -273,7 +274,7 @@ static void btstack_run_loop_posix_execute(void) {
             }
         }
         log_debug("btstack_run_loop_posix_execute: after ds check\n");
-        
+
         // process timers
         now_ms = btstack_run_loop_posix_get_time_ms();
         while (timers) {
@@ -281,7 +282,7 @@ static void btstack_run_loop_posix_execute(void) {
             int32_t delta = btstack_time_delta(ts->timeout, now_ms);
             if (delta > 0) break;
             log_debug("btstack_run_loop_posix_execute: process timer %p\n", ts);
-            
+
             // remove timer before processing it to allow handler to re-register with run loop
             btstack_run_loop_posix_remove_timer(ts);
             ts->process(ts);
